@@ -1,0 +1,44 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Local databases & uploads
+data/
+*.mv.db
+*.trace.db
+uploads/
+
+# Environment files
+.env
+*.env
+!.env.example
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.recommenders
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.built-jar-path
+
+### VS Code ###
+.vscode/
+
+### Logs ###
+log/
+*.log
