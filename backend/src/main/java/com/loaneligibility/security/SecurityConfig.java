@@ -64,9 +64,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/settings/**").hasRole("ADMINISTRATOR")
                         .requestMatchers("/api/dashboard/admin").hasRole("ADMINISTRATOR")
 
-                        .requestMatchers("/api/dashboard/staff/**").hasAnyRole("ADMINISTRATOR", "STAFF")
-                        .requestMatchers("/api/dashboard/reviewer/**").hasAnyRole("ADMINISTRATOR", "REVIEWER")
-                        .requestMatchers("/api/dashboard/customer/**").hasAnyRole("ADMINISTRATOR", "CUSTOMER")
+                        .requestMatchers("/api/dashboard/staff").hasAnyRole("ADMINISTRATOR", "STAFF")
+                        .requestMatchers("/api/dashboard/reviewer").hasAnyRole("ADMINISTRATOR", "REVIEWER")
+                        .requestMatchers("/api/dashboard/customer").hasAnyRole("ADMINISTRATOR", "CUSTOMER")
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMINISTRATOR", "STAFF", "REVIEWER")
                         .requestMatchers("/api/notifications/**").authenticated()
 

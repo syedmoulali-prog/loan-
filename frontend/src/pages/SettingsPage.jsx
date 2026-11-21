@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axiosConfig';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
-import { Settings, Save, Shield, Bell, Moon, Sun, Database, Sliders } from 'lucide-react';
+import { 
+  Settings, Save, Shield, Moon, Sun, Database, Sliders, 
+  Download, RefreshCw, CheckCircle2, HardDrive, FileText, Clock
+} from 'lucide-react';
 
 export const SettingsPage = () => {
   const { theme, toggleTheme } = useTheme();
@@ -19,6 +22,19 @@ export const SettingsPage = () => {
   });
   const [loading, setLoading] = useState(false);
 
+  // Backup State
+  const [backupStatus, setBackupStatus] = useState(null);
+  const [backupLoading, setBackupLoading] = useState(false);
+
+  const fetchBackupStatus = async () => {
+    try {
+      const res = await api.get('/admin/backup/status');
+      setBackupStatus(res.data);
+    } catch (err) {
+      console.error('Failed to fetch backup status', err);
+    }
+  };
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -33,6 +49,7 @@ export const SettingsPage = () => {
       }
     };
     fetchSettings();
+    fetchBackupStatus();
   }, []);
 
   const handleChange = (key, value) => {
@@ -54,6 +71,36 @@ export const SettingsPage = () => {
     }
   };
 
+  const handleCreateBackup = async () => {
+    setBackupLoading(true);
+    try {
+      await api.post('/admin/backup/create');
+      success('Database backup created successfully!');
+      fetchBackupStatus();
+    } catch (err) {
+      error('Failed to create backup');
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
+  const handleDownloadBackup = async () => {
+    try {
+      const res = await api.get('/admin/backup/download', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `loan_system_backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      success('Backup download initiated');
+      fetchBackupStatus();
+    } catch (err) {
+      error('Failed to download backup');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
@@ -62,7 +109,7 @@ export const SettingsPage = () => {
           <span>System &amp; Security Settings</span>
         </h1>
         <p className="text-xs text-slate-500 mt-1">
-          Configure application parameters, financial boundary limits, session duration, and interface themes
+          Configure application parameters, financial boundary limits, session duration, database backups, and interface themes
         </p>
       </div>
 
@@ -152,6 +199,108 @@ export const SettingsPage = () => {
               </label>
             </div>
           </div>
+        </div>
+
+        {/* Database Backup & Disaster Recovery Section */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-700 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 gap-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+                <HardDrive className="w-4 h-4 text-emerald-600" />
+                <span>Database Backup &amp; Recovery</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Full snapshot export and hot recovery point management for all persistent database tables
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{backupStatus?.status || 'ONLINE'}</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              <span className="text-slate-400 block font-semibold text-[11px]">Database Type</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block truncate">
+                {backupStatus?.databaseType || 'H2 / MySQL Compatible'}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              <span className="text-slate-400 block font-semibold text-[11px]">Database File Size</span>
+              <span className="font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">
+                {backupStatus?.dbSizeFormatted || 'N/A'}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              <span className="text-slate-400 block font-semibold text-[11px]">Total Backups</span>
+              <span className="font-mono font-bold text-blue-600 dark:text-blue-400 mt-0.5 block">
+                {backupStatus?.backupCount ?? 0} snapshots
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              <span className="text-slate-400 block font-semibold text-[11px]">Registered Records</span>
+              <span className="font-mono font-bold text-purple-600 dark:text-purple-400 mt-0.5 block">
+                {(backupStatus?.recordCounts?.users || 0) + (backupStatus?.recordCounts?.loanApplications || 0)} entities
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleCreateBackup}
+              disabled={backupLoading}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center space-x-2 shadow-md shadow-emerald-500/20 transition disabled:opacity-50"
+            >
+              {backupLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <RefreshCw className="w-4 h-4" />
+              )}
+              <span>Create Immediate Backup</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadBackup}
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center space-x-2 shadow-md shadow-blue-500/20 transition"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download Backup (JSON)</span>
+            </button>
+          </div>
+
+          {/* Backup History */}
+          {backupStatus?.backups && backupStatus.backups.length > 0 && (
+            <div className="pt-2">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                Available Snapshot History
+              </span>
+              <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                {backupStatus.backups.map((b, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <FileText className="w-3.5 h-3.5 text-blue-500" />
+                      <span className="font-mono font-medium text-slate-800 dark:text-slate-200">{b.filename}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-slate-400">
+                      <span className="font-mono">{b.sizeFormatted}</span>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{new Date(b.lastModified).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Theme Settings */}

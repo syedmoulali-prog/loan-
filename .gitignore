@@ -1,47 +1,30 @@
-# ====================================================
-# CUSTOMER LOAN ELIGIBILITY SYSTEM - GITIGNORE
-# ====================================================
-
-# Dependencies & Build Outputs
-node_modules/
-dist/
-dist-ssr/
-*.local
-target/
-*.class
-
-# Environment variables & Secrets (NEVER UPLOAD TO GIT)
-.env
-.env.production
-.env.development
-.env.local
-*.env
-!.env.example
-
-# Runtime & Local Data
-backend/data/
-data/
-*.db
-*.mv.db
-*.trace.db
-backend/uploads/
-uploads/
-
-# Log files
-*.log
-logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# IDE & Editor Configs
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.DS_Store
+# Operating System Files
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Build & Dependency Directories
+**/target/
+**/node_modules/
+**/dist/
+**/dist-ssr/
+
+# Archives & Temporary Files
+*.zip
+*.tar.gz
+*.rar
+*.log
+*.tmp
+*.class
+.factorypath
+
+# Environment & Local Secrets
+**/.env
+!**/.env.example
+
+# Database & Runtime Uploads
+**/data/
+**/uploads/
+**/test-uploads/
