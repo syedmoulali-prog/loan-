@@ -37,10 +37,14 @@ export const LoginPage = () => {
     } catch (err) {
       console.error('Login error:', err);
       let errorMsg = 'Invalid email or password';
-      if (err.response?.data?.message) {
+      if (err.message && err.message.includes('Backend server is not connected')) {
+        errorMsg = err.message;
+      } else if (typeof err.response?.data === 'string' && err.response.data.includes('<!DOCTYPE html>')) {
+        errorMsg = 'Backend server is not connected. API route returned HTML from Vercel.';
+      } else if (err.response?.data?.message) {
         errorMsg = err.response.data.message;
       } else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        errorMsg = 'Unable to connect to backend server. Please verify the backend is running on port 8080.';
+        errorMsg = 'Unable to connect to backend server. Please verify the backend is running.';
       }
       setFormError(errorMsg);
       error(errorMsg);

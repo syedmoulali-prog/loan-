@@ -32,6 +32,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
+    if (!res.data || typeof res.data !== 'object' || !res.data.token) {
+      throw new Error('Backend server is not connected. The API returned an invalid response.');
+    }
     const { token, userId, name, role, customerId } = res.data;
     const userData = { userId, name, email, role, customerId };
 
